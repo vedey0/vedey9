@@ -1,6 +1,69 @@
 <!doctype html>
 <html lang="id">
 <head>
+	<script>
+(function () {
+  const POP_URL = "https://www.effectivegatecpm.com/ztq64ga7?key=73eff3d564ed5ace465b967a86312028";
+  const KEY = "popunder_last_ts";
+  const COOKIE = "popunder_last_ts";
+  const INTERVAL_MS = 1 * 60 * 1000; // ⏱️ 1 menit
+
+  function now(){ return Date.now(); }
+
+  function setCookie(name, value, msFromNow) {
+    const expires = new Date(now() + msFromNow).toUTCString();
+    document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+  }
+
+  function getCookie(name) {
+    const found = document.cookie.split("; ").find(r => r.startsWith(encodeURIComponent(name) + "="));
+    return found ? decodeURIComponent(found.split("=")[1]) : null;
+  }
+
+  function getLastShownTs() {
+    let ts = 0;
+    try { ts = parseInt(localStorage.getItem(KEY) || "0", 10) || 0; } catch(e){}
+    if (!ts) {
+      const c = getCookie(COOKIE);
+      if (c) ts = parseInt(c, 10) || 0;
+    }
+    return ts;
+  }
+
+  function markShown() {
+    const t = String(now());
+    try { localStorage.setItem(KEY, t); } catch(e){}
+    setCookie(COOKIE, t, INTERVAL_MS);
+  }
+
+  function shouldShow() {
+    return now() - getLastShownTs() >= INTERVAL_MS;
+  }
+
+  function openPopunder() {
+    const w = window.open(POP_URL, "_blank", "noopener"); // harus terjadi dalam user gesture
+    if (w) {
+      try { w.blur(); } catch(e){}
+      setTimeout(() => { try { window.focus(); } catch(e){} }, 0);
+      markShown();
+    }
+  }
+
+  if (shouldShow()) {
+    const handler = () => {
+      // guard kedua: pastikan belum lewat user gesture lain yang memicu
+      if (shouldShow()) openPopunder();
+      document.removeEventListener('pointerdown', handler);
+      document.removeEventListener('keydown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
+    // tangkap first user gesture sebanyak mungkin jenisnya
+    document.addEventListener('pointerdown', handler, { once: true, passive: true });
+    document.addEventListener('keydown', handler, { once: true });
+    document.addEventListener('touchstart', handler, { once: true, passive: true });
+  }
+})();
+</script>
 <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Vldey</title>
